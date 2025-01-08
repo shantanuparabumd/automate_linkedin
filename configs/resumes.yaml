@@ -1,0 +1,14 @@
+default: "/path/to/default_resume.pdf"
+resumes:
+  "/path/to/python_resume.pdf":
+    - "Python"
+    - "Machine Learning"
+    - "AI"
+  "/path/to/robotics_resume.pdf":
+    - "Robotics"
+    - "ROS"
+    - "Automation"
+  "/path/to/data_science_resume.pdf":
+    - "Data Science"
+    - "TensorFlow"
+    - "Pandas"

@@ -65,7 +65,7 @@ class LinkedInScraper:
         self.driver.find_element(By.XPATH, self.xpaths["login"]["username"]).send_keys(self.credentials["email"])
         self.driver.find_element(By.XPATH, self.xpaths["login"]["password"]).send_keys(self.credentials["password"])
         self.driver.find_element(By.XPATH, self.xpaths["login"]["submit"]).click()
-        time.sleep(2)
+        time.sleep(15)
 
     def search_jobs(self):
         """Navigates to the LinkedIn job search page using filters."""
@@ -105,6 +105,190 @@ class LinkedInScraper:
 
         return points
 
+
+    def apply_to_job(self, description, filters, cache):
+        """Handles Easy Apply, answering questions and uploading resumes."""
+        try:
+            # Find Easy Apply button and click
+            easy_apply_button = self.driver.find_element(By.XPATH, self.xpaths["job_apply"]["easy_apply_button"])
+            easy_apply_button.click()
+            print(f"{Colors.OKCYAN}Clicked Easy Apply button{Colors.ENDC}")
+            time.sleep(2)
+
+            self.handle_easy_apply_form()
+            # Load answers for questions from YAML
+            answers = filters.get("answers", {})
+
+            # Answer questions
+            while True:
+                try:
+                    question_element = WebDriverWait(self.driver, 5).until(
+                        EC.presence_of_element_located((By.XPATH, self.xpaths["job_apply"]["question_text"]))
+                    )
+                    question_text = question_element.text.strip()
+                    print(f"{Colors.OKBLUE}Question: {question_text}{Colors.ENDC}")
+
+                    answer = answers.get(question_text, None)
+                    if answer:
+                        print(f"{Colors.OKGREEN}Answer: {answer}{Colors.ENDC}")
+                        input_field = self.driver.find_element(By.XPATH, self.xpaths["job_apply"]["answer_field"])
+                        input_field.send_keys(answer)
+                    else:
+                        print(f"{Colors.WARNING}No answer found for question: {question_text}{Colors.ENDC}")
+                        continue
+
+                    next_button = self.driver.find_element(By.XPATH, self.xpaths["job_apply"]["next_button"])
+                    if next_button:
+                        next_button.click()
+                        time.sleep(2)
+                    else:
+                        print("No 'Next' button. Breaking loop.")
+                        break
+                except Exception as e:
+                    print(f"Error answering question: {e}")
+                    break
+
+            # Upload resume
+            resume = self.select_resume(description, filters["resumes"])
+            upload_input = self.driver.find_element(By.XPATH, self.xpaths["job_apply"]["upload_resume"])
+            upload_input.send_keys(resume)
+            print(f"{Colors.OKCYAN}Uploaded resume: {resume}{Colors.ENDC}")
+
+            # Submit application
+            submit_button = self.driver.find_element(By.XPATH, self.xpaths["job_apply"]["submit_button"])
+            submit_button.click()
+            print(f"{Colors.OKGREEN}Application submitted successfully!{Colors.ENDC}")
+
+        except Exception as e:
+            print(f"{Colors.FAIL}Error during Easy Apply: {e}{Colors.ENDC}")
+
+    def select_resume(self, description, resume_config):
+        """Selects the appropriate resume based on keywords."""
+        selected_resume = resume_config.get("default", "default_resume.pdf")
+        description = description.lower()
+
+        for resume_name, keywords in resume_config.items():
+            if any(keyword.lower() in description for keyword in keywords):
+                selected_resume = resume_name
+                break
+
+        print(f"Resume selected: {Colors.OKBLUE}{selected_resume}{Colors.ENDC}")
+        return selected_resume
+    
+    def extract_questions_from_form(self):
+        """
+        Extracts all questions from the LinkedIn Easy Apply form, including:
+        1. Text input questions with associated labels.
+        2. Radio button questions with options.
+        """
+        try:
+            print(f"{Colors.HEADER}Extracting all questions from the form...{Colors.ENDC}")
+
+            # Extract text input questions
+            text_questions = self.driver.find_elements(By.XPATH, '//div[contains(@data-test-single-line-text-form-component, "true")]')
+            for text_question in text_questions:
+                try:
+                    question_text = text_question.find_element(By.XPATH, './/label').text.strip()
+                    print(f"{Colors.OKBLUE}Text Input Question Found: {question_text}{Colors.ENDC}")
+
+                    # Check for associated input field
+                    input_field = text_question.find_element(By.XPATH, './/input')
+                    if input_field:
+                        print(f"{Colors.OKCYAN}Input Field Detected for: {question_text}{Colors.ENDC}")
+                    else:
+                        print(f"{Colors.WARNING}No Input Field Detected for: {question_text}{Colors.ENDC}")
+                except Exception as e:
+                    print(f"{Colors.FAIL}Error processing text question: {e}{Colors.ENDC}")
+
+            # Extract radio button questions
+            radio_questions = self.driver.find_elements(By.XPATH, '//fieldset[contains(@data-test-form-builder-radio-button-form-component, "true")]')
+            for radio_question in radio_questions:
+                try:
+                    question_text = radio_question.find_element(By.XPATH, './legend/span[1]').text.strip()
+                    print(f"{Colors.OKCYAN}Radio Button Question Found: {question_text}{Colors.ENDC}")
+
+                    # List available options
+                    options = radio_question.find_elements(By.XPATH, './/div[contains(@class, "display-flex")]/label')
+                    options_text = [option.text.strip() for option in options]
+                    print(f"{Colors.BOLD}Options: {options_text}{Colors.ENDC}")
+                except Exception as e:
+                    print(f"{Colors.FAIL}Error processing radio question: {e}{Colors.ENDC}")
+
+        except Exception as e:
+            print(f"{Colors.FAIL}Error extracting questions from the form: {e}{Colors.ENDC}")
+
+
+    def handle_easy_apply_form(self):
+        """
+        Handles the Easy Apply form:
+        1. Logs all detected questions (radio, text input).
+        2. Handles 'Next', 'Review', and 'Submit' buttons dynamically.
+        3. If 'Next' or 'Review' buttons are not found in 3 attempts, clicks 'Dismiss' and then 'Discard'.
+        """
+        unanswered_questions = []
+        attempts = 0
+
+        try:
+            while attempts < 6:
+                print(f"Attempts {attempts}")
+                self.extract_questions_from_form()
+
+                # Handle navigation: "Next" or "Review" button
+                try:
+                    next_or_review_button = self.driver.find_element(By.XPATH, '//button[@aria-label="Continue to next step" or @aria-label="Review your application"]')
+                    next_or_review_button.click()
+                    print(f"{Colors.OKCYAN}Clicked 'Next' or 'Review' button.{Colors.ENDC}")
+                    attempts += 1
+                    time.sleep(2)
+                except Exception as e:
+                    attempts += 1
+                    print(f"{Colors.WARNING}No 'Next' or 'Review' button found, attempt {attempts}: {e}{Colors.ENDC}")
+            if attempts >= 6:
+                print(f"{Colors.FAIL}Exceeded maximum attempts to find 'Next' or 'Review' button.{Colors.ENDC}")
+                self.handle_dismiss_and_discard()
+                return
+
+            # After "Review", click 'Submit Application'
+            try:
+                submit_button = self.driver.find_element(By.XPATH, '//button[contains(text(), "Submit application")]')
+                submit_button.click()
+                print(f"{Colors.OKGREEN}Application submitted successfully!{Colors.ENDC}")
+            except Exception as e:
+                print(f"{Colors.FAIL}No 'Submit Application' button found: {e}{Colors.ENDC}")
+
+        except Exception as e:
+            print(f"{Colors.FAIL}Error handling Easy Apply form: {e}{Colors.ENDC}")
+
+        # Log unanswered questions
+        if unanswered_questions:
+            print(f"{Colors.WARNING}Unanswered Questions:{Colors.ENDC}")
+            for question in unanswered_questions:
+                print(f" - {Colors.FAIL}{question}{Colors.ENDC}")
+
+
+    def handle_dismiss_and_discard(self):
+        """
+        Handles the dismissal of the Easy Apply form:
+        1. Clicks the 'Dismiss' button.
+        2. Clicks the 'Discard' button in the discard modal.
+        """
+        try:
+            # Find and click the 'Dismiss' button
+            dismiss_button = self.driver.find_element(By.XPATH, '//button[@aria-label="Dismiss"]')
+            dismiss_button.click()
+            print(f"{Colors.OKCYAN}Clicked 'Dismiss' button.{Colors.ENDC}")
+            time.sleep(2)
+
+            # Find and click the 'Discard' button
+            discard_button = self.driver.find_element(By.XPATH, '//button[contains(@data-control-name, "discard_application_confirm_btn")]')
+            discard_button.click()
+            print(f"{Colors.OKCYAN}Clicked 'Discard' button to confirm dismissal.{Colors.ENDC}")
+        except Exception as e:
+            print(f"{Colors.FAIL}Error handling dismissal and discard: {e}{Colors.ENDC}")
+
+
+
+                
     def extract_job_details(self, filters, cache):
         """Extracts job details for each job card."""
         job_data = []
@@ -173,6 +357,9 @@ class LinkedInScraper:
                         "Posting Date": primary_dict["Posting Date"],
                         "Status": primary_dict["Status"],
                     })
+                    
+
+                    self.apply_to_job(full_description, filters, cache)
 
                     # Add the job ID to cache
                     cache.add_job(job_id)

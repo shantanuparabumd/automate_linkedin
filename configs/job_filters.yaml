@@ -1,13 +1,20 @@
 keywords: 
   - "Data Scientist"
   - "Machine Learning"
+  - "Robotics"
 max_jobs: 10
 description:
   positive:
     - "Python"
     - "C++"
     - "ROS"
+    - "Machine Learning"
+    - "AI"
   negative:
     - "Kafka"
-    - "ABB"
     - "Excel"
+    - "Sales"
+answers:
+  "Are you authorized to work in the United States?": "Yes"
+  "What is your desired salary?": "Negotiable"
+  "Do you have experience with Python?": "Yes, I have extensive experience in Python."
