@@ -1,3 +1,5 @@
 selenium
-pyyaml
+webdriver-manager
 pandas
+pyyaml
+hydra-core

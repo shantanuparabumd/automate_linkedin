@@ -1,0 +1,13 @@
+keywords: 
+  - "Data Scientist"
+  - "Machine Learning"
+max_jobs: 10
+description:
+  positive:
+    - "Python"
+    - "C++"
+    - "ROS"
+  negative:
+    - "Kafka"
+    - "ABB"
+    - "Excel"
