@@ -217,19 +217,16 @@ class LinkedInScraper:
             if word.lower() in full_description.lower():
                 points += 1
                 pos_words_found.append(word)
-
         # Check for negative keywords
         for word in negative_words:
             if word.lower() in full_description.lower():
-                points -= 1
+                points = - 1
                 neg_words_found.append(word)
-
         # Check for best keywords
         for word in best_words:
             if word.lower() in full_description.lower():
-                points += 1
+                points = 1
                 best_words_found.append(word)
-
         return points, pos_words_found, neg_words_found, best_words_found
 
     def extract_job_details(self, filters, cache):
@@ -250,6 +247,8 @@ class LinkedInScraper:
 
         blacklisted_companies = filters.get("blacklisted_companies", [])
 
+        loading_flag = False
+        skipping_flag = False
         print(f"{Colors.HEADER}Starting job scanning...{Colors.ENDC}")
         for page in range(total_pages):
             if jobs_scanned >= filters["max_jobs"]:
@@ -264,7 +263,7 @@ class LinkedInScraper:
                 job_cards = self.driver.find_elements(
                     By.XPATH, self.xpaths["job_search"]["job_card"]
                 )
-
+                loading_flag = False
                 for card in job_cards:
                     if jobs_scanned >= filters["max_jobs"]:
                         print(
@@ -281,8 +280,10 @@ class LinkedInScraper:
                         f"SELECT 1 FROM jobs WHERE job_id = '{job_id}'"
                     ):
                         skipped_jobs.append(job_id)
+                        if not skipping_flag:
+                            print(f"{Colors.WARNING} Skipping jobs previously viewed ...")
+                            skipping_flag = True
                         continue
-
                     # Scroll to the job card and click it
                     self.driver.execute_script(
                         "arguments[0].scrollIntoView(true);", card
@@ -303,6 +304,8 @@ class LinkedInScraper:
                     ).text
                     primary_dict = self.parse_primary_description(primary_description)
 
+                    skipping_flag = False
+                    
                     # Skip jobs from blacklisted companies
                     if company.lower() in [c.lower() for c in blacklisted_companies]:
                         print(
@@ -331,7 +334,7 @@ class LinkedInScraper:
                         )
                         time.sleep(2)
                     except Exception:
-                        pass
+                        print(f"{Colors.WARNING}Show more button not found... {Colors.ENDC}")
 
                     full_description_element = self.driver.find_element(
                         By.XPATH, self.xpaths["job_search"]["full_description"]
@@ -352,14 +355,13 @@ class LinkedInScraper:
                     level, _, _, _ = self.calculate_description_points(
                         title, filters
                     )
-
                     matched_keywords = [
                         word
                         for word in filters["description"]["positive"]
                         if word.lower() in full_description.lower()
                     ]
 
-                    if points > 0 and level > 0:
+                    if points > 0 and level >=0:
                         # Save relevant job to database
                         cache.add_job(
                             job_id=job_id,
@@ -391,6 +393,7 @@ class LinkedInScraper:
                         )
                         jobs_scanned += 1
                     else:
+                        print(f"{Colors.OKBLUE} Irrelavant Job {title} at {company}| {neg}{Colors.ENDC}")
                         # Mark irrelevant job
                         irrelavant_jobs.append(
                             {
@@ -406,7 +409,9 @@ class LinkedInScraper:
                     time.sleep(2)  # Avoid LinkedIn rate limiting
 
             except Exception as e:
-                print(f"{Colors.WARNING}Error during job scanning: {e}{Colors.ENDC}")
+                if not loading_flag:
+                    print(f"{Colors.WARNING}Loading Pages ...{Colors.ENDC}")
+                    loading_flag = True
 
         # Print scan summary
         print(f"{Colors.HEADER}Job Scanning Complete{Colors.ENDC}")
