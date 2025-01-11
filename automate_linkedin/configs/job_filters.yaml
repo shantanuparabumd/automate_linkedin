@@ -1,0 +1,75 @@
+# DISCLAIMER:
+# This automation does not use AI for filtering jobs. The filtering is entirely based on the keywords
+# and configurations provided below. Make sure to select appropriate filters for your specific needs.
+# 
+# IMPORTANT:
+# 1. If the job description contains even a single negative word, it will be skipped as irrelevant.
+# 2. Be careful when selecting keywords. For example, the word "lead" might appear as a noun (e.g., "Lead Engineer")
+#    or as a verb (e.g., "experience to lead teams"). Both cases will be skipped if "lead" is included as a negative word.
+# 3. Use a thoughtful combination of positive, negative, and best keywords to ensure accurate filtering.
+
+# Keywords for job search
+# Add the keywords that best match your desired job roles or industries.
+keywords: 
+  - "Machine Learning"         # Example: Targeting jobs related to ML.
+  - "Robotics"                 # Example: Focus on robotics positions.
+  - "Software Developer"       # General role in software development.
+
+# Maximum number of jobs to scan during the search.
+max_jobs: 200                  # Adjust this based on your needs.
+
+# Description filters to prioritize jobs.
+description:
+  # Keywords that positively impact the score of a job.
+  positive:
+    - "Python"                 # Skills or technologies you're proficient in.
+    - "C++"
+    - "ROS"
+
+  # Keywords that negatively impact the score of a job.
+  negative:
+    - "Kafka"                  # Example: Unrelated technologies.
+    - "Sales"                  # Unrelated Skills
+    - "10+ Years"              # Filter out roles requiring extensive experience.
+    - "Senior"                 # Avoid senior roles if you're entry-level.
+    - "Phd"                    # Skip research-focused roles if not applicable.
+    - "Web Developer"          # Example: Exclude unrelated job types.
+
+  # Best keywords that significantly boost the score of a job.
+  best:
+    - "ROS"                    # Core skill or technology to prioritize.
+    - "Reinforcement Learning" # Specialized area to emphasize.
+
+# Location filter for job search.
+# Specify the geographic location you're targeting.
+location: "United States"      # Example: Target jobs in the US.
+
+# Date posted filter for job listings.
+# Options: past_24_hours, past_week, past_month.
+date_posted: "past_month"      # Limit search to jobs posted within the last month.
+
+# Job type filter for job search.
+# Options: Full-time, Part-time, Contract, Internship, Temporary.
+job_type: 
+  - "Full-time"                # Example: Target permanent positions.
+  - "Contract"                 # Include contract-based roles.
+  - "Internship"               # Consider internships.
+
+# Work mode filter for job search.
+# Options: Remote, Hybrid, Onsite.
+work_mode:
+  - "Remote"                   # Include remote jobs.
+  - "Hybrid"                   # Include hybrid roles.
+  - "Onsite"                   # Include onsite positions.
+
+# Experience level filter for job search.
+# Options: Internship, Entry level, Associate, Mid-Senior level, Director, Executive.
+experience_level:
+  - "Entry level"              # Target entry-level roles.
+  - "Mid-Senior level"         # Include mid-to-senior roles if applicable.
+
+# Blacklisted companies to exclude from the search.
+# Add company names that you want to avoid.
+blacklisted_companies:
+  - "Jobot"                    # Example: Avoid roles from this company.
+  - "Dice"                     # Another example of a company to exclude.

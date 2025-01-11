@@ -1,0 +1,5 @@
+selenium
+webdriver-manager
+PyYAML
+hydra-core
+pandas

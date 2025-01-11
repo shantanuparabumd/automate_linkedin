@@ -1,0 +1,2 @@
+[console_scripts]
+linkedin-job-automation = automate_linkedin.automate:main

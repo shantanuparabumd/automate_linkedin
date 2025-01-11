@@ -1,0 +1,49 @@
+# XPATH CONFIGURATION FILE
+# This file contains the XPaths used for scraping and automating LinkedIn.
+# LinkedIn frequently updates its UI, which may result in changes to XPaths. 
+# This configuration allows you to quickly update the XPaths without modifying the code.
+
+# SECTION: LOGIN
+# XPaths required for logging into LinkedIn.
+login:
+  username: "//input[@id='username']"        # XPath for the email/username input field on the login page.
+  password: "//input[@id='password']"        # XPath for the password input field on the login page.
+  submit: "//button[@type='submit']"         # XPath for the submit/login button.
+
+# SECTION: JOB SEARCH
+# XPaths used for navigating and extracting job-related data during the job search process.
+job_search:
+  total_jobs: "//small"                      # XPath for the element showing the total number of jobs found.
+  job_card: "//li[@data-occludable-job-id]"  # XPath for individual job cards in the job listing.
+  job_title: "//h1[contains(@class, 't-24 t-bold')]" 
+                                            # XPath for the job title on the job details page.
+  company: "//div[contains(@class, 'job-details-jobs-unified-top-card__company-name')]//a"
+                                            # XPath for the company name/link on the job details page.
+  primary_description: "//div[contains(@class, 'job-details-jobs-unified-top-card__primary-description-container')]"
+                                            # XPath for the primary job description, usually near the top of the page.
+  show_more_button: "//button[contains(@class, 'feed-shared-inline-show-more-text__see-more-less-toggle')]"
+                                            # XPath for the "Show More" button in the job description.
+  full_description: "//div[contains(@class, 'feed-shared-inline-show-more-text--expanded')]"
+                                            # XPath for the full job description after expanding.
+
+# SECTION: JOB APPLY
+# XPaths used for automating the job application process.
+job_apply:
+  easy_apply_button: "//button[contains(@aria-label, 'Easy Apply') and contains(@class, 'jobs-apply-button')]"
+                                            # XPath for the "Easy Apply" button on the job details page.
+  question_text: "//div[contains(@class, 'jobs-easy-apply-form__question')]"
+                                            # XPath for questions in the Easy Apply form.
+  answer_field: "//input[contains(@class, 'jobs-easy-apply-form__input')]"
+                                            # XPath for input fields in the Easy Apply form.
+  next_button: "//button[contains(text(), 'Next')]"
+                                            # XPath for the "Next" button in multi-step Easy Apply forms.
+  upload_resume: "//input[@type='file']"    # XPath for the resume upload input field.
+  submit_button: "//button[contains(text(), 'Submit application')]"
+                                            # XPath for the final "Submit application" button in Easy Apply forms.
+
+# EXPLANATION:
+# - Each XPath is defined based on the element's role in the automation process.
+# - In case LinkedIn changes its UI, identify the new elements in the browser's developer tools (F12) 
+#   and update the XPaths here accordingly.
+# - Keeping XPaths in a separate configuration file makes it easy to maintain and adapt to UI changes.
+

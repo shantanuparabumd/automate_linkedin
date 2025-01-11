@@ -1,0 +1,49 @@
+# DISCLAIMER:
+# This configuration allows you to specify resumes and their associated keywords for matching job descriptions.
+# The script will suggest jobs based on keyword matches in job descriptions and recommend the most suitable resume.
+#
+# HOW IT WORKS:
+# 1. The script analyzes job descriptions and compares the keywords found in them with those associated with each resume.
+# 2. Based on the best match (maximum keyword overlap), the script suggests the resume that best fits the job description.
+# 3. The script DOES NOT read or analyze the contents of your resumes. It only matches the keywords you specify in this YAML file.
+# 4. You need to manually decide which resume best fits each job and prepare tailored resumes accordingly.
+# 5. The `applications` field determines how many job suggestions the script will provide in one run (apply mode).
+
+# Resumes and their associated keywords.
+# Add your resumes and the corresponding skills or keywords they highlight.
+# IMPORTANT: 
+# - The resume file names is for your reference and the script does not use it to apply.
+# - Keywords should align with the skills and experiences highlighted in the corresponding resume.
+resumes:
+  Python_Resume.pdf:           # Resume name for Python-related roles.
+    - "Python"                 # Skills or keywords highlighted in the resume.
+    - "Machine Learning"
+    - "AI"
+    - "Data Science"
+
+  Robotics_Resume.pdf:         # Resume name for robotics-related roles.
+    - "Robotics"
+    - "ROS"
+    - "Path Planning"
+    - "Automation"
+
+  Data_Science_Resume.pdf:     # Resume name for data science-related roles.
+    - "TensorFlow"
+    - "Keras"
+    - "Pandas"
+    - "Deep Learning"
+
+# Number of job applications to process in one run.
+# This controls how many job suggestions the script will provide in "apply" mode.
+applications: 3                # Example: Set to 3 for suggesting up to 3 jobs per run.
+
+# EXPLANATION:
+# - When running the script in "apply" mode, the script:
+#   1. Analyzes job descriptions from the database.
+#   2. Identifies relevant keywords in each job description.
+#   3. Suggests jobs to apply for, along with the best-matching resume based on the keywords.
+# - The name of the resume is for your reference. The script will not upload or use the resume automatically.
+# - This functionality saves time by helping you decide which resume to use for each job.
+
+# NOTE:
+# Be sure to prepare your resumes in advance and name them meaningfully to align with the categories defined here.
